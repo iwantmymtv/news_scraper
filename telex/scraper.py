@@ -79,22 +79,22 @@ class TelexScraper(MongoClient):
         for item in item_elements:
             # Find the element containing the title
             title_element = item.select_one('a.list__item__title > span')
-            title = title_element.text.strip()
+            title = title_element.text.strip() if title_element else ""
 
             author_element = item.select_one('div.article_date > em > a')
-            author = author_element.text.strip()
+            author = author_element.text.strip() if author_element else ""
 
             lead_element = item.select_one('p.list__item__lead')
-            lead = lead_element.text.strip()
+            lead = lead_element.text.strip() if lead_element else ""
 
             date_element = item.select_one('div.article_date > span')
-            date_string = date_element.text.strip()
+            date_string = date_element.text.strip() if date_element else ""
 
             title_element = item.select_one('a.list__item__title')
-            link = title_element['href']
+            link = title_element['href'] if lead_element else ""
             
             tag_element = item.select_one('div.tag--basic')
-            tag = tag_element.text.strip()
+            tag = tag_element.text.strip() if title_element else ""
 
 
             for hungarian, english in self.month_map.items():
