@@ -2,7 +2,7 @@ import requests
 import openai
 
 from bs4 import BeautifulSoup,Tag
-from datetime import datetime
+from datetime import datetime,date, timedelta
 from typing import List,Dict,Union
 
 from db.client import MongoClient
@@ -39,7 +39,7 @@ class TelexScraper(MongoClient):
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup
 
-    def scrape_page(self, page: int = 1) -> List[dict]:
+    def scrape_page(self, page: int = 1, save_to_bd:bool = True) -> List[dict]:
         url = f"{self.base_url}/archivum?oldal={page}"
 
         soup = self.get_html_from_url(url)
@@ -49,7 +49,8 @@ class TelexScraper(MongoClient):
 
         articles = self.scape_items(item_elements)
         #save
-        self.save_to_collection(articles)
+        if save_to_bd:
+            self.save_to_collection(articles)
 
         return articles
 
@@ -148,3 +149,21 @@ class TelexScraper(MongoClient):
             print("all scraped articles: ", sum)
             
         return
+
+    def scrape_yesterdays_articles(self,current_page:int = 1):
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+
+        articles = self.scrape_page(current_page,False)
+        articles_yesterday = [a["date"] for a in articles if a["date"].date() == yesterday]
+
+        last_date = articles[-1]["date"].date()
+
+        print("last date: ",last_date)
+        if last_date == today or last_date == yesterday:
+            print("new page")
+            print(len(articles_yesterday),articles_yesterday)
+            self.scrape_yesterdays_articles(current_page + 1)
+
+        return
+        
