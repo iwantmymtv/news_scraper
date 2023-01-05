@@ -8,7 +8,14 @@ class MongoClient:
         self.connect_url = connect_url
         self.client = pymongo.MongoClient(self.connect_url)
 
-    
+    def save_to_collection(self,items) -> None:
+        for item in items:
+            self.collection.update_one(
+                item,
+                {'$set': item},
+                upsert=True
+            )
+        return
 
 
     

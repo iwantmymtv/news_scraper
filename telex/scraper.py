@@ -10,6 +10,14 @@ from .utils import convert_to_dict
 
 openai.api_key = "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"
 
+def get_element_text(item, selector):
+    element = item.select_one(selector)
+    if element:
+        return element.text.strip()
+    else:
+        return ""
+
+
 class TelexScraper(MongoClient):
     def __init__(self):
         super().__init__()
@@ -39,7 +47,7 @@ class TelexScraper(MongoClient):
         soup = BeautifulSoup(response.text, 'html.parser')
         return soup
 
-    def scrape_page(self, page: int = 1, save_to_bd:bool = True) -> List[dict]:
+    def scrape_page(self, page: int = 1, save_to_bd:bool = False) -> List[dict]:
         url = f"{self.base_url}/archivum?oldal={page}"
 
         soup = self.get_html_from_url(url)
@@ -79,23 +87,18 @@ class TelexScraper(MongoClient):
         # Iterate over the item elements
         for item in item_elements:
             # Find the element containing the title
-            title_element = item.select_one('a.list__item__title > span')
-            title = title_element.text.strip() if title_element else ""
-
-            author_element = item.select_one('div.article_date > em > a')
-            author = author_element.text.strip() if author_element else ""
-
-            lead_element = item.select_one('p.list__item__lead')
-            lead = lead_element.text.strip() if lead_element else ""
-
-            date_element = item.select_one('div.article_date > span')
-            date_string = date_element.text.strip() if date_element else ""
+            title = get_element_text(item, 'a.list__item__title > span')
+            author = get_element_text(item, 'div.article_date > em > a')
+            lead = get_element_text(item, 'p.list__item__lead')
+            date_string = get_element_text(item, 'div.article_date > span')
 
             title_element = item.select_one('a.list__item__title')
-            link = title_element['href'] if lead_element else ""
-            
-            tag_element = item.select_one('div.tag--basic')
-            tag = tag_element.text.strip() if title_element else ""
+            if title_element:
+                link = title_element['href']
+            else:
+                link = ""
+
+            tag = get_element_text(item, 'div.tag--basic')
 
 
             for hungarian, english in self.month_map.items():
@@ -108,7 +111,7 @@ class TelexScraper(MongoClient):
                 "author": author,
                 "url":f"{self.base_url}{link}",
                 "category": tag,
-                "full_text": self.get_full_text_from_article(f"{self.base_url}{link}")
+                "full_text": self.get_full_text_from_article(f"{self.base_url}{link}"),
             }
 
             try:
@@ -121,9 +124,8 @@ class TelexScraper(MongoClient):
         return articles
 
     def get_full_text_from_article(self, url:str) -> str:
-        response = requests.get(url)
         # Parse the HTML of the web page
-        soup = BeautifulSoup(response.text, 'html.parser')
+        soup = self.get_html_from_url(url)
         htmls = soup.select(".article-html-content")
         string = ""
         for h in htmls:
@@ -131,20 +133,12 @@ class TelexScraper(MongoClient):
         
         return string.strip()
 
-    def save_to_collection(self,items) -> None:
-        for item in items:
-            self.collection.update_one(
-                item,
-                {'$set': item},
-                upsert=True
-            )
-        return
-
     def scrape_from_page_to_page(self,from_page:int,to_page:int) -> None:
         sum = 0
         for page in range(from_page,to_page):
             articles = self.scrape_page(page)
             sum += len(articles)
+            print(articles)
             print("scraped page number: ", page)
             print("all scraped articles: ", sum)
             
@@ -155,14 +149,15 @@ class TelexScraper(MongoClient):
         yesterday = today - timedelta(days=1)
 
         articles = self.scrape_page(current_page,False)
-        articles_yesterday = [a["date"] for a in articles if a["date"].date() == yesterday]
+        articles_yesterday = [a for a in articles if a["date"].date() == yesterday]
 
         last_date = articles[-1]["date"].date()
 
+        if len(articles_yesterday) > 0:
+            self.save_to_collection(articles_yesterday)
+
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
-            print("new page")
-            print(len(articles_yesterday),articles_yesterday)
             self.scrape_yesterdays_articles(current_page + 1)
 
         return
