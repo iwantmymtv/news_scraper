@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from .utils import get_sentiment_analysis
 
 class Scraper(ABC):
 
@@ -45,7 +44,6 @@ class Scraper(ABC):
             "portal":self.portal_name,
             "title":title,
             "lead":self.scrape_lead(soup),
-            "sentiment": get_sentiment_analysis(title),
             "author": self.scrape_author(soup),
             "url":self.scrape_detail_url(soup),
             "category": self.scrape_category(soup),

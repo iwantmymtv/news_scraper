@@ -2,6 +2,8 @@ from datetime import datetime,date,timedelta
 from typing import List,Dict
 
 from bs4 import Tag
+from decouple import config
+
 from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
 from db.client import MongoClient
@@ -9,7 +11,7 @@ from db.client import MongoClient
 class TelexScraper(Scraper, MongoClient):
     def __init__(self):
         Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex")
-        MongoClient.__init__(self, db_name="newsData", collection_name="articles")
+        MongoClient.__init__(self, db_name=config("DB_NAME"), collection_name=config("COLLECTION_NAME"))
         self.month_map = {
             "január": "January",
             "február": "February",
@@ -35,7 +37,7 @@ class TelexScraper(Scraper, MongoClient):
         last_date = articles[-1]["date"].date()
 
         if len(articles_yesterday) > 0:
-            self.save_to_collection(articles_yesterday)
+            self.save_many_to_collection(articles_yesterday)
 
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
@@ -107,7 +109,7 @@ class TelexScraper(Scraper, MongoClient):
         articles = self.scape_articles_from_page(item_elements)
         #save
         if save_to_bd:
-            self.save_to_collection(articles)
+            self.save_many_to_collection(articles)
 
         return articles
 
@@ -117,10 +119,10 @@ class TelexScraper(Scraper, MongoClient):
             articles.append(self.scrape_single_article(i))
         return articles
     
-    def scrape_from_page_to_page(self,from_page:int,to_page:int) -> None:
+    def scrape_from_page_to_page(self,from_page:int,to_page:int,save_to_db:bool=False) -> None:
         sum = 0
         for page in range(from_page,to_page):
-            articles = self.scrape_page(page)
+            articles = self.scrape_page(page,save_to_db)
             sum += len(articles)
             print(articles)
             print("scraped page number: ", page)
