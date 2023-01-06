@@ -1,4 +1,4 @@
-from telex.scraper import TelexScraper
+from telex.telex2 import TelexScraper
 
 def main ():
     print("hellllo")
