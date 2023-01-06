@@ -1,6 +1,5 @@
-from ast import Dict
 from datetime import datetime,date,timedelta
-from typing import List, Union
+from typing import List,Dict
 
 from bs4 import Tag
 from base.scraper import Scraper
@@ -30,7 +29,7 @@ class TelexScraper(Scraper, MongoClient):
         today = date.today()
         yesterday = today - timedelta(days=1)
 
-        articles = self.scrape_page(current_page,False)
+        articles = self.scrape_page(current_page,True)
         articles_yesterday = [a for a in articles if a["date"].date() == yesterday]
 
         last_date = articles[-1]["date"].date()
