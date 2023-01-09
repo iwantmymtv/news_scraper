@@ -1,10 +1,17 @@
-from googletrans import Translator
-translator = Translator()
+import sys
+from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('all-MiniLM-L6-v2')
 
-def translate_to_english(sentence:str) -> str:
-    translated = translator.translate(sentence, dest="en")
-    print(translated.text)
-    print(sentence)
-    return 
+#Our sentences we like to encode
+sentences = ['Orbán kijelölte a magyar középhatalmiság útját, ami zsibbasztó közhelyekkel van kikövezve',
+    'Rendkívüli szünetet rendeltek el abban a szentgotthárdi iskolában, ahol 29 tanár kezdett polgári engedetlenségbe',
+    'Jelenlegi formájában megszűnik a világ egyik legjobbjának tartott étterme, a dán Noma']
 
-translate_to_english("Villámgyorsan tölthető, és a kormány eltűnik a műszerfalban a Peugeot 680 lóerős jövőautójában")
+#Sentences are encoded by calling model.encode()
+embeddings = model.encode(sentences)
+
+#Print the embeddings
+for sentence, embedding in zip(sentences, embeddings):
+    print("Sentence:", sentence)
+    print("Embedding:", type(embedding),embedding.shape)
+    print("Size: ", sys.getsizeof(embedding))

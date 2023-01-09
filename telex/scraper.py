@@ -6,12 +6,12 @@ from decouple import config
 
 from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
-from db.client import MongoClient
+from db.local import append_to_json_file
+from .utils import add_embeddings
 
-class TelexScraper(Scraper, MongoClient):
+class TelexScraper(Scraper):
     def __init__(self):
         Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex")
-        MongoClient.__init__(self, db_name=config("DB_NAME"), collection_name=config("COLLECTION_NAME"))
         self.month_map = {
             "január": "January",
             "február": "February",
@@ -37,7 +37,7 @@ class TelexScraper(Scraper, MongoClient):
         last_date = articles[-1]["date"].date()
 
         if len(articles_yesterday) > 0:
-            self.save_many_to_collection(articles_yesterday)
+            append_to_json_file(articles_yesterday,self.portal_name)
 
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
@@ -97,6 +97,14 @@ class TelexScraper(Scraper, MongoClient):
     def scrape_category(self,soup):
         return get_element_text(soup, 'div.tag--basic')
     
+    
+    def scrape_image(self,soup):
+        element = soup.select_one("a.list__item__image img")
+        if element:
+            return element.get('src').strip()
+        else:
+            return ""
+    
 
     def scrape_page(self, page: int = 1, save_to_bd:bool = False) -> List[dict]:
         url = f"{self.base_url}/archivum?oldal={page}"
@@ -107,9 +115,11 @@ class TelexScraper(Scraper, MongoClient):
         item_elements = soup.find_all('div', {"class": ["list__item", "article"]})
 
         articles = self.scape_articles_from_page(item_elements)
+        print("articles:", articles)
+        articles = add_embeddings(articles)
         #save
         if save_to_bd:
-            self.save_many_to_collection(articles)
+            append_to_json_file(articles,self.portal_name)
 
         return articles
 

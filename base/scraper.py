@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from .utils import serialize_datetime
 
 class Scraper(ABC):
 
@@ -37,18 +38,24 @@ class Scraper(ABC):
     @abstractmethod
     def scrape_category(self,soup):
         pass
+
+    @abstractmethod
+    def scrape_image(self,soup):
+        pass
     
     def scrape_single_article(self,soup):
         title = self.scrape_title(soup)
         article = {
             "portal":self.portal_name,
             "title":title,
+            "embedding":"",
             "lead":self.scrape_lead(soup),
+            "image":self.scrape_image(soup),
             "author": self.scrape_author(soup),
             "url":self.scrape_detail_url(soup),
             "category": self.scrape_category(soup),
             "full_text": self.scrape_full_text(soup),
-            "date":self.scrape_date(soup)
+            "date":serialize_datetime(self.scrape_date(soup))
         }
 
         return article

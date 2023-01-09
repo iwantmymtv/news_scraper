@@ -17,6 +17,7 @@ class MongoClient:
             self.save_one_to_collection(item)
         return
 
+    #this is awful
     def save_one_to_collection(self,item) -> None:
         self.collection.update_one(
             item,

@@ -1,9 +1,11 @@
 from telex.scraper import TelexScraper
+from telex.views import telex_multi_scraper
 
-def main ():
-    print("hellllo")
+def main():
+    #telex_multi_scraper(save=True)
     telex = TelexScraper()
-    articles = telex.scrape_from_page_to_page(1,20)
-    #telex.scrape_yesterdays_articles()
+    articles = telex.scrape_page(1)
+    print(articles)
+
 if __name__ == '__main__':
     main()

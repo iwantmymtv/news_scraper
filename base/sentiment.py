@@ -1,23 +1,30 @@
-# import the Google Cloud Natural Language API client library
-from google.cloud import language
-from google.cloud.language import enums
-from google.cloud.language import types
+import six
 
-# create a client for interacting with the Cloud Natural Language API
-client = language.LanguageServiceClient()
+from google.cloud import language_v1
+#from google.oauth2.credentials import Credentials
+from google.auth.api_key import Credentials
 
-# specify the text you want to analyze
-text = 'I am feeling very happy today!'
+from decouple import config
 
-# build a document object representing the text
-document = types.Document(
-    content=text,
-    type=enums.Document.Type.PLAIN_TEXT
-)
 
-# detect the sentiment of the text
-sentiment = client.analyze_sentiment(document=document).document_sentiment
+creds = Credentials(config("GOOGLE_API_KEY"))
 
-# print the sentiment score and magnitude
-print('Score: {}'.format(sentiment.score))
-print('Magnitude: {}'.format(sentiment.magnitude))
+def title_analyze_sentiment(content):
+
+    client = language_v1.LanguageServiceClient(credentials=creds)
+    
+    print(len(content))
+
+    if isinstance(content, six.binary_type):
+        content = content.decode("utf-8")
+
+    type_ = language_v1.Document.Type.PLAIN_TEXT
+    document = {"type_": type_, "content": content}
+
+    response = client.analyze_sentiment(request={"document": document})
+    sentiment = response.document_sentiment
+    print("Score: {}".format(sentiment.score))
+    print("Magnitude: {}".format(sentiment.magnitude))
+
+content = 'On the fourth day of voting in the House of Representatives, McCarthy is just a few votes short of the Speakership'
+title_analyze_sentiment(content)
