@@ -3,9 +3,10 @@ from .utils import serialize_datetime
 
 class Scraper(ABC):
 
-    def __init__(self, base_url: str,portal_name: str):
+    def __init__(self, base_url: str,portal_name: str,portal_id:int):
         self.base_url = base_url
         self.portal_name = portal_name
+        self.portal_id = portal_id
 
     @abstractmethod
     def scrape_yesterdays_articles(self):
@@ -46,9 +47,8 @@ class Scraper(ABC):
     def scrape_single_article(self,soup):
         title = self.scrape_title(soup)
         article = {
-            "portal":self.portal_name,
+            "portal":self.portal_id,
             "title":title,
-            "embedding":"",
             "lead":self.scrape_lead(soup),
             "image":self.scrape_image(soup),
             "author": self.scrape_author(soup),

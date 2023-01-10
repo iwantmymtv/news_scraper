@@ -2,16 +2,14 @@ from datetime import datetime,date,timedelta
 from typing import List,Dict
 
 from bs4 import Tag
-from decouple import config
 
 from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
-from db.local import append_to_json_file
-from .utils import add_embeddings
+from db.django import upload_many
 
 class TelexScraper(Scraper):
     def __init__(self):
-        Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex")
+        Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex",portal_id=1)
         self.month_map = {
             "január": "January",
             "február": "February",
@@ -37,7 +35,7 @@ class TelexScraper(Scraper):
         last_date = articles[-1]["date"].date()
 
         if len(articles_yesterday) > 0:
-            append_to_json_file(articles_yesterday,self.portal_name)
+            upload_many(articles_yesterday,self.portal_name)
 
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
@@ -116,10 +114,9 @@ class TelexScraper(Scraper):
 
         articles = self.scape_articles_from_page(item_elements)
         print("articles:", articles)
-        articles = add_embeddings(articles)
         #save
         if save_to_bd:
-            append_to_json_file(articles,self.portal_name)
+            upload_many(articles)
 
         return articles
 
