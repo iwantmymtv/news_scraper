@@ -14,7 +14,7 @@ class TelexThread(threading.Thread):
         telex.scrape_from_page_to_page(self.start_page, self.end_page,self.save_to_db)
         
 
-def telex_multi_scraper(save:bool = False):
+def telex_multi_scraper(save:bool = False) -> None:
     threads = []
     chunk_size = 500
     num_chunks = 10

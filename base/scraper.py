@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from bs4 import ResultSet,Tag
+
 from .utils import serialize_datetime
 
 class Scraper(ABC):
@@ -13,38 +15,38 @@ class Scraper(ABC):
         pass
 
     @abstractmethod
-    def scrape_title(self,soup):
+    def scrape_title(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_lead(self,soup):
+    def scrape_lead(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_author(self,soup):
+    def scrape_author(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_detail_url(self,soup):
+    def scrape_detail_url(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_full_text(self,soup):
+    def scrape_full_text(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_date(self,soup):
+    def scrape_date(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_category(self,soup):
+    def scrape_category(self,soup:Tag):
         pass
 
     @abstractmethod
-    def scrape_image(self,soup):
+    def scrape_image(self,soup:Tag):
         pass
     
-    def scrape_single_article(self,soup):
+    def scrape_single_article(self,soup:Tag):
         url = self.scrape_detail_url(soup)
         article = {
             "portal":self.portal_id,

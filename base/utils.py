@@ -1,9 +1,10 @@
 from datetime import datetime
 import requests
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup,ResultSet,Tag
+
 
 # Convert a datetime object to a JSON-serializable string
-def serialize_datetime(dt: datetime):
+def serialize_datetime(dt: datetime) -> str:
     return dt.isoformat()
     
 def get_html_from_url(url: str) -> str:
@@ -13,8 +14,13 @@ def get_html_from_url(url: str) -> str:
     soup = BeautifulSoup(response.text, 'html.parser')
     return soup
 
+def get_element_from_result_set(soup_list:ResultSet, selector:str) -> str:
+    list = []
+    for e in soup_list:
+        list.append(get_element_text(e, selector))
+    return list[0]
 
-def get_element_text(soup, selector):
+def get_element_text(soup:Tag, selector:str) -> str:
     element = soup.select_one(selector)
     if element:
         return element.text.strip()

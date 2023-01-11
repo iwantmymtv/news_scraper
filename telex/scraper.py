@@ -43,19 +43,19 @@ class TelexScraper(Scraper):
 
         return
         
-    def scrape_title(self,soup):
+    def scrape_title(self,soup:Tag) -> str:
         return get_element_text(soup, 'a.list__item__title > span')
 
     
-    def scrape_lead(self,soup):
+    def scrape_lead(self,soup:Tag) -> str:
         return get_element_text(soup, 'p.list__item__lead')
 
     
-    def scrape_author(self,soup):
+    def scrape_author(self,soup:Tag) -> str:
         return get_element_text(soup, 'div.article_date > em > a')
 
     
-    def scrape_detail_url(self,soup):
+    def scrape_detail_url(self,soup:Tag) -> str:
         url = ""
         title_element = soup.select_one('a.list__item__title')
         if title_element:
@@ -64,7 +64,7 @@ class TelexScraper(Scraper):
         return f"{self.base_url}{url}"
 
     
-    def scrape_full_text(self,soup):
+    def scrape_full_text(self,soup:Tag) -> str:
         # Parse the HTML of the web page
         html = get_html_from_url(self.scrape_detail_url(soup))
         htmls = html.select(".article-html-content")
@@ -75,7 +75,7 @@ class TelexScraper(Scraper):
         return string.strip()
         
     
-    def scrape_date(self,soup):
+    def scrape_date(self,soup:Tag) -> datetime:
         date = None
         date_format_hu = "%Y. %B %d. – %H:%M"
         date_format_en = "%B %d. %Y. – %I:%M %p"
@@ -92,11 +92,11 @@ class TelexScraper(Scraper):
         return date
 
     
-    def scrape_category(self,soup):
+    def scrape_category(self,soup:Tag) -> str:
         return get_element_text(soup, 'div.tag--basic')
     
     
-    def scrape_image(self,soup):
+    def scrape_image(self,soup:Tag) -> str:
         element = soup.select_one("a.list__item__image img")
         if element:
             return element.get('src').strip()
