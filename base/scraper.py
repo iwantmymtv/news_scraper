@@ -45,14 +45,14 @@ class Scraper(ABC):
         pass
     
     def scrape_single_article(self,soup):
-        title = self.scrape_title(soup)
+        url = self.scrape_detail_url(soup)
         article = {
             "portal":self.portal_id,
-            "title":title,
+            "title":self.scrape_title(soup),
             "lead":self.scrape_lead(soup),
             "image":self.scrape_image(soup),
             "author": self.scrape_author(soup),
-            "url":self.scrape_detail_url(soup),
+            "url":url,
             "category": self.scrape_category(soup),
             "full_text": self.scrape_full_text(soup),
             "date":serialize_datetime(self.scrape_date(soup))
