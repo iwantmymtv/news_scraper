@@ -4,26 +4,17 @@ from typing import List,Dict
 from bs4 import Tag,BeautifulSoup
 from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text,get_element_from_result_set
-
-"""start_date = datetime(2020,1,10)
-end_date = datetime(2023, 1, 11)
-
-current_date = start_date
-date_format = "%Y%m%d"
-
-while current_date <= end_date:
-    cd = current_date.strftime(date_format)
-    print(f"{current_date.year}/{cd}.html")
-    current_date += timedelta(days=1)"""
+from db.django import upload_many
 
 
 class OrigoScraper(Scraper):
     def __init__(self):
-        Scraper.__init__(self, base_url="https://origo.hu", portal_name="origo",portal_id=2)
+        Scraper.__init__(self, base_url="https://origo.hu", portal_name="origo",portal_id=16)
         self.detail_soup = None
         self.current_date_string = None
 
-    def scrape_page(self,datestring:str) -> List[Dict]:
+    def scrape_page(self,datestring:str,save_to_db:bool=True) -> List[Dict]:
+        print(datestring)
         self.current_date_string = datestring
         url = f"{self.base_url}/hir-archivum/{datestring[:4]}/{datestring}.html"
 
@@ -31,7 +22,8 @@ class OrigoScraper(Scraper):
 
         item_elements = soup.find_all("div",class_="archive-cikk")
         articles = self.scape_articles_from_page(item_elements)
-
+        if save_to_db:
+            upload_many(articles)
         return articles
 
     def scape_articles_from_page(self, item_elements: List[Tag]) -> List[Dict]:
@@ -40,13 +32,22 @@ class OrigoScraper(Scraper):
             articles.append(self.scrape_single_article(i))
         return articles
 
-    """<div class="archive-cikk">
-    <span>kedd 17:33</span>
-    <h3><a href="https://www.origo.hu/gazdasag/20230110-gazdasag-penz-nmhh-internet-reklam-figyelmeztetes.html" title="Legyen nagyon óvatos, ha ilyen típusú reklámokkal találkozik az interneten">Legyen nagyon óvatos, ha ilyen típusú reklámokkal találkozik az interneten</a></h3>
-    </div>
-    """
-    def scrape_yesterdays_articles(self):
-        pass
+    def scrape_from_date_to_date(self, from_date:str,to_date:str) -> None:
+        date_format = "%Y%m%d"
+
+        start_date = datetime.strptime(from_date, date_format)
+        end_date = datetime.strptime(to_date, date_format)
+        current_date = start_date
+
+        while current_date <= end_date:
+            cd = current_date.strftime(date_format)
+            self.scrape_page(cd)
+            current_date += timedelta(days=1)
+
+    def scrape_yesterdays_articles(self) -> None:
+        yesterday = (datetime.now() - timedelta(days=1)).strftime("%Y%m%d")
+        self.scrape_page(yesterday)
+        return 
 
     def scrape_title(self,soup:Tag) -> str:
         title = ""
@@ -57,7 +58,6 @@ class OrigoScraper(Scraper):
 
     def scrape_lead(self,soup:Tag) -> str:
         html = self.detail_soup()
-        print(type(html))
         return get_element_from_result_set(html, '.article-lead > p')
 
     def scrape_author(self,soup:Tag) -> str:

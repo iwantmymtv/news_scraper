@@ -8,7 +8,7 @@ def main():
     #telex = TelexScraper()
     #articles = telex.scrape_page(1,True)
     origo = OrigoScraper()
-    articles = origo.scrape_page("20230110")
+    articles = origo.scrape_from_date_to_date("20220110","20220113")
     print(articles)
 
 if __name__ == '__main__':

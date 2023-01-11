@@ -35,7 +35,7 @@ class TelexScraper(Scraper):
         last_date = articles[-1]["date"].date()
 
         if len(articles_yesterday) > 0:
-            upload_many(articles_yesterday,self.portal_name)
+            upload_many(articles_yesterday)
 
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
