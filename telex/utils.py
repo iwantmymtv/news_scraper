@@ -1,8 +1,14 @@
 from typing import Dict, List
-from sentence_transformers import SentenceTransformer
-model = SentenceTransformer('all-MiniLM-L6-v2')
+from datetime import datetime
 
-def update_embedding_in_array(objects:List[Dict], values:List, name:str) -> List[Dict]:
+def to_datetime(date_string:str) -> datetime:
+    date_object = datetime.strptime(date_string, "%Y-%m-%dT%H:%M:%S")
+    return date_object
+
+""" from sentence_transformers import SentenceTransformer
+model = SentenceTransformer('all-MiniLM-L6-v2') """
+
+""" def update_embedding_in_array(objects:List[Dict], values:List, name:str) -> List[Dict]:
     for obj, value in zip(objects, values):
         obj[name] = value
     return objects
@@ -15,3 +21,4 @@ def add_embeddings(articles:List[Dict]) -> List[Dict]:
     new_articles = update_embedding_in_array(articles,embeddings,"embeddings")
     return new_articles
 
+ """

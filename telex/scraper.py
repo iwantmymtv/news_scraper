@@ -7,6 +7,7 @@ from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
 from db.django import upload_many
 
+from .utils import to_datetime
 class TelexScraper(Scraper):
     def __init__(self):
         Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex",portal_id=1)
@@ -29,10 +30,11 @@ class TelexScraper(Scraper):
         today = date.today()
         yesterday = today - timedelta(days=1)
 
-        articles = self.scrape_page(current_page,True)
-        articles_yesterday = [a for a in articles if a["date"].date() == yesterday]
+        articles = self.scrape_page(current_page,False)
+        
+        articles_yesterday = [a for a in articles if to_datetime(a["date"]).date() == yesterday]
 
-        last_date = articles[-1]["date"].date()
+        last_date = to_datetime(articles[-1]["date"]).date()
 
         if len(articles_yesterday) > 0:
             upload_many(articles_yesterday)
@@ -76,7 +78,7 @@ class TelexScraper(Scraper):
         
     
     def scrape_date(self,soup:Tag) -> datetime:
-        date = None
+        date = datetime.now()
         date_format_hu = "%Y. %B %d. – %H:%M"
         date_format_en = "%B %d. %Y. – %I:%M %p"
         date_string = get_element_text(soup, 'div.article_date > span').lower()
