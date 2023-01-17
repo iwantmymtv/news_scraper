@@ -1,7 +1,13 @@
 import sys
+from pymilvus import connections
+from pymilvus import Collection
+
 from sentence_transformers import SentenceTransformer
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
+milvus_uri = 
+user = 
+password = 
 #Our sentences we like to encode
 sentences = ['Orbán kijelölte a magyar középhatalmiság útját, ami zsibbasztó közhelyekkel van kikövezve',
     'Rendkívüli szünetet rendeltek el abban a szentgotthárdi iskolában, ahol 29 tanár kezdett polgári engedetlenségbe',
