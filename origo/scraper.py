@@ -6,10 +6,15 @@ from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text,get_element_from_result_set
 from db.django import upload_many
 
+from .config import conf
 
 class OrigoScraper(Scraper):
     def __init__(self):
-        Scraper.__init__(self, base_url="https://origo.hu", portal_name="origo",portal_id=16)
+        Scraper.__init__(self, 
+                         base_url=conf["BASE_URL"], 
+                         portal_name=conf["PORTAL_NAME"],
+                         portal_id=conf["PORTAL_ID"]
+                         )
         self.detail_soup = None
         self.current_date_string = None
 
@@ -54,6 +59,7 @@ class OrigoScraper(Scraper):
         title_element = soup.select_one('a')
         if title_element:
             title = title_element['title']
+        print(title)
         return title
 
     def scrape_lead(self,soup:Tag) -> str:

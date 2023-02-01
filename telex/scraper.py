@@ -7,10 +7,17 @@ from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
 from db.django import upload_many
 
+from .config import conf
 from .utils import to_datetime
+
+
 class TelexScraper(Scraper):
     def __init__(self):
-        Scraper.__init__(self, base_url="https://telex.hu", portal_name="telex",portal_id=1)
+        Scraper.__init__(self, 
+                         base_url=conf["BASE_URL"], 
+                         portal_name=conf["PORTAL_NAME"],
+                         portal_id=conf["PORTAL_ID"]
+                         )
         self.month_map = {
             "január": "January",
             "február": "February",
