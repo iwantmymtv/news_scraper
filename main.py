@@ -9,7 +9,7 @@ def main():
     #telex = TelexScraper()
     #origo = OrigoScraper()
     hu24 = HU24Scraper()
-    hu24.scrape_page()
+    hu24.scrape_yesterdays_articles()
     #telex.scrape_yesterdays_articles()
     #origo.scrape_yesterdays_articles()
     #articles = origo.scrape_from_date_to_date("20220110","20220113")

@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from typing import List
 from bs4 import Tag
 
@@ -48,6 +48,10 @@ class HU24Scraper(Scraper):
         # Find all the elements with the class `list__item` and `article`
         item_elements = soup.find_all('div', {"class": ["m-articleWidget__innerWrap"]})
 
+        if len(item_elements) == 0:
+            print("nincs ilyen oldal")
+            return None
+
         articles = self.scape_articles_from_page(item_elements)
         print("articles:", articles)
         #save
@@ -64,8 +68,24 @@ class HU24Scraper(Scraper):
                 articles.append(article)
         return articles
 
+    def scrape_every_category(self,
+                    date=datetime.now().date(),
+                    save_to_bd:bool = False) -> None:
+
+        for category in self.categories:
+            pages_left = True
+            page = 1
+            while pages_left:
+                articles = self.scrape_page(page,date,category,save_to_bd)
+                if articles:
+                    page += 1
+                else:
+                    pages_left = False
+
     def scrape_yesterdays_articles(self):
-        pass
+        today = date.today()
+        yesterday = today - timedelta(days=1)
+        self.scrape_every_category(date=yesterday)
 
     def scrape_title(self,soup:Tag):
        return get_element_text(soup, 'a.m-articleWidget__link')
