@@ -79,7 +79,7 @@ class TelexScraper(Scraper):
         htmls = html.select(".article-html-content")
         string = ""
         for h in htmls:
-            string += h.get_text()
+            string += f"\n{h.get_text()}"
         
         return string.strip()
         

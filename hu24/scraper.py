@@ -3,7 +3,7 @@ from typing import List
 from bs4 import Tag
 
 from base.scraper import Scraper
-from base.utils import get_element_text, get_html_from_url
+from base.utils import get_element_text, get_html_from_url, is_valid_url
 from db.django import upload_many
 
 from .config import conf
@@ -64,7 +64,7 @@ class HU24Scraper(Scraper):
         articles = []
         for i in item_elements:
             article = self.scrape_single_article(i)
-            if self.base_url in article["url"]:
+            if is_valid_url(article["url"]):
                 articles.append(article)
         return articles
 
@@ -85,7 +85,7 @@ class HU24Scraper(Scraper):
     def scrape_yesterdays_articles(self):
         today = date.today()
         yesterday = today - timedelta(days=1)
-        self.scrape_every_category(date=yesterday)
+        self.scrape_every_category(date=yesterday,save_to_bd=True)
 
     def scrape_title(self,soup:Tag):
        return get_element_text(soup, 'a.m-articleWidget__link')
@@ -105,13 +105,13 @@ class HU24Scraper(Scraper):
 
     def scrape_full_text(self,soup:Tag):
         # Parse the HTML of the web page
-        if not self.base_url in self.scrape_detail_url(soup):
+        if not is_valid_url(self.scrape_detail_url(soup)):
             return ""
         html = get_html_from_url(self.scrape_detail_url(soup))
         htmls = html.select(".o-post__body.o-postCnt.post-body p")
         string = ""
         for h in htmls:
-            string += h.get_text()
+            string += f"\n{h.get_text()}"
         #print(string.strip())
         return string.strip()
         
