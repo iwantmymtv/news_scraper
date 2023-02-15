@@ -2,6 +2,7 @@ from datetime import datetime,date,timedelta
 from typing import List,Dict
 
 from bs4 import Tag
+from pandas import to_datetime
 
 from base.scraper import Scraper
 from base.utils import get_html_from_url,get_element_text
@@ -39,12 +40,18 @@ class HvgScraper(Scraper):
             "pszichologiamagazin",
             "hvgkonyvek",
         ]
+        self.default_date = (date.today() - timedelta(days=1)).datetime()
 
-    def scrape_yesterdays_articles(self,current_page:int = 1) -> None:
-        """today = date.today()
+    def scrape_yesterdays_articles(self) -> None:
+        for category in self.categories:
+            self.scrape_yesterdays_articles_by_category(category=category)
+        return
+
+    def scrape_yesterdays_articles_by_category(self,current_page:int = 1,category:str ="itthon") -> None:
+        today = date.today()
         yesterday = today - timedelta(days=1)
 
-        articles = self.scrape_page(current_page,False)
+        articles = self.scrape_page(page=current_page,save_to_bd=False,category=category)
         
         articles_yesterday = [a for a in articles if to_datetime(a["date"]).date() == yesterday]
 
@@ -55,70 +62,10 @@ class HvgScraper(Scraper):
 
         print("last date: ",last_date)
         if last_date == today or last_date == yesterday:
-            self.scrape_yesterdays_articles(current_page + 1)
-        """
+            self.scrape_yesterdays_articles_by_category(current_page + 1,category=category)
+        
         return
-        
-    def scrape_title(self,soup:Tag) -> str:
-        return get_element_text(soup, 'a.list__item__title > span')
 
-    
-    def scrape_lead(self,soup:Tag) -> str:
-        return get_element_text(soup, 'p.list__item__lead')
-
-    
-    def scrape_author(self,soup:Tag) -> str:
-        return get_element_text(soup, 'div.article_date > em > a')
-
-    
-    def scrape_detail_url(self,soup:Tag) -> str:
-        url = ""
-        title_element = soup.select_one('a.list__item__title')
-        if title_element:
-            url = title_element['href']
-
-        return f"{self.base_url}{url}"
-
-    
-    def scrape_full_text(self,soup:Tag) -> str:
-        # Parse the HTML of the web page
-        html = get_html_from_url(self.scrape_detail_url(soup))
-        htmls = html.select(".article-html-content")
-        string = ""
-        for h in htmls:
-            string += f"\n{h.get_text()}"
-        
-        return string.strip()
-        
-    
-    def scrape_date(self,soup:Tag) -> datetime:
-        date = datetime.now()
-        date_format_hu = "%Y. %B %d. – %H:%M"
-        date_format_en = "%B %d. %Y. – %I:%M %p"
-        date_string = get_element_text(soup, 'div.article_date > span').lower()
-
-        for hungarian, english in self.month_map.items():
-            date_string = date_string.replace(hungarian, english)
-
-        try:
-            date = datetime.strptime(date_string, date_format_hu)
-        except:
-            date = datetime.strptime(date_string, date_format_en)
-
-        return date
-
-    
-    def scrape_category(self,soup:Tag) -> str:
-        return get_element_text(soup, 'div.tag--basic')
-    
-    
-    def scrape_image(self,soup:Tag) -> str:
-        element = soup.select_one("a.list__item__image img")
-        if element:
-            return element.get('src').strip()
-        else:
-            return ""
-    
 
     def scrape_page(self, page: int = 1, category:str = "itthon",save_to_bd:bool = False) -> List[dict]:
         url = f"{self.base_url}/{category}/{page}"
@@ -126,10 +73,9 @@ class HvgScraper(Scraper):
         soup = get_html_from_url(url)
 
         # Find all the elements with the class `list__item` and `article`
-        item_elements = soup.find_all('article', {"class": ["articlelist-element", "clear"]})
+        item_elements = soup.select('div.column-articlelist > article.articlelist-element.clear')
 
         articles = self.scape_articles_from_page(item_elements)
-        print("articles:", articles)
         #save
         if save_to_bd:
             upload_many(articles)
@@ -152,3 +98,61 @@ class HvgScraper(Scraper):
             print("all scraped articles: ", sum)
             
         return
+
+    def scrape_title(self,soup:Tag) -> str:
+        return get_element_text(soup, 'h2.heading-3 > a')
+
+    
+    def scrape_lead(self,soup:Tag) -> str:
+        return get_element_text(soup, 'p.article-lead')
+
+    
+    def scrape_author(self,soup:Tag) -> str:
+        return get_element_text(soup, 'span.info > span')
+
+    
+    def scrape_detail_url(self,soup:Tag) -> str:
+        url = ""
+        title_element = soup.select_one('h2.heading-3 > a')
+        if title_element:
+            url = title_element['href']
+            if not url[0] == "/":
+                url = f"/{url}"
+        print(url)
+        return f"{self.base_url}{url}"
+
+    
+    def scrape_full_text(self,soup:Tag) -> str:
+        # Parse the HTML of the web page
+        html = get_html_from_url(self.scrape_detail_url(soup))
+        htmls = html.select(".article-main")
+        string = ""
+        for h in htmls:
+            string += f"\n{h.get_text()}"
+        
+        return string.strip()
+        
+    
+    def scrape_date(self,soup:Tag) -> datetime:
+        #2023.02.15. 15:33:00
+        date_format_hu = "%Y. %m. %d. %H:%M:%S"
+        date_string = get_element_text(soup, 'span.info > time').lower()
+        try:
+            date = datetime.strptime(date_string, date_format_hu)
+        except:
+            date = self.default_date
+        return date
+
+    
+    def scrape_category(self,soup:Tag) -> str:
+        return get_element_text(soup, 'span.info > a.uppercase')
+    
+    
+    def scrape_image(self,soup:Tag) -> str:
+        element = soup.select_one("div.image-holder img")
+        if element:
+            return element.get('src').strip()
+        else:
+            return ""
+    
+
