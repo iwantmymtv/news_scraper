@@ -40,10 +40,11 @@ class HvgScraper(Scraper):
             "pszichologiamagazin",
             "hvgkonyvek",
         ]
-        self.default_date = (date.today() - timedelta(days=1)).datetime()
+        self.default_date = datetime.now()
 
     def scrape_yesterdays_articles(self) -> None:
         for category in self.categories:
+            print("kategoria: ", category)
             self.scrape_yesterdays_articles_by_category(category=category)
         return
 
@@ -52,6 +53,9 @@ class HvgScraper(Scraper):
         yesterday = today - timedelta(days=1)
 
         articles = self.scrape_page(page=current_page,save_to_bd=False,category=category)
+        print(articles)
+        if not articles:
+            return 
         
         articles_yesterday = [a for a in articles if to_datetime(a["date"]).date() == yesterday]
 
@@ -118,7 +122,6 @@ class HvgScraper(Scraper):
             url = title_element['href']
             if not url[0] == "/":
                 url = f"/{url}"
-        print(url)
         return f"{self.base_url}{url}"
 
     
@@ -135,12 +138,15 @@ class HvgScraper(Scraper):
     
     def scrape_date(self,soup:Tag) -> datetime:
         #2023.02.15. 15:33:00
-        date_format_hu = "%Y. %m. %d. %H:%M:%S"
-        date_string = get_element_text(soup, 'span.info > time').lower()
+        date_format_hu = "%Y.%m.%d. %H:%M:%S"
+        time_element = soup.select_one('span.info > time')
+        date_string = time_element['title']
+        
         try:
             date = datetime.strptime(date_string, date_format_hu)
         except:
             date = self.default_date
+        
         return date
 
     
@@ -154,5 +160,3 @@ class HvgScraper(Scraper):
             return element.get('src').strip()
         else:
             return ""
-    
-

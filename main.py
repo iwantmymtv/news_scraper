@@ -5,14 +5,15 @@ from origo.scraper import OrigoScraper
 
 
 def main():
-    """telex = TelexScraper()
+    telex = TelexScraper()
     origo = OrigoScraper()
     hu24 = HU24Scraper()
+    hvg = HvgScraper()
     hu24.scrape_yesterdays_articles()
     telex.scrape_yesterdays_articles()
-    origo.scrape_yesterdays_articles()"""
-    hvg = HvgScraper()
-    hvg.scrape_yesterdays_articles()
+    origo.scrape_yesterdays_articles()
+    
+    #hvg.scrape_yesterdays_articles()
 
 if __name__ == '__main__':
     main()
