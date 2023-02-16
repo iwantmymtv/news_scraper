@@ -1,3 +1,5 @@
+from db.django import generate_ner_entities, generate_sentiments
+
 from hu24.scraper import HU24Scraper
 from hvg.scraper import HvgScraper
 from telex.scraper import TelexScraper
@@ -9,11 +11,14 @@ def main():
     origo = OrigoScraper()
     hu24 = HU24Scraper()
     hvg = HvgScraper()
+
     hu24.scrape_yesterdays_articles()
     telex.scrape_yesterdays_articles()
     origo.scrape_yesterdays_articles()
-    
-    #hvg.scrape_yesterdays_articles()
+    hvg.scrape_yesterdays_articles()
 
+    generate_sentiments()
+    generate_ner_entities()
+    
 if __name__ == '__main__':
     main()
