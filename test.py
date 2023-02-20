@@ -1,4 +1,4 @@
-import sys
+""" import sys
 from pymilvus import connections
 from pymilvus import Collection
 from decouple import config
@@ -28,4 +28,4 @@ embeddings = model.encode(sentences)
 for sentence, embedding in zip(sentences, embeddings):
     print("Sentence:", sentence)
     print("Embedding:", type(embedding),embedding.shape)
-    print("Size: ", sys.getsizeof(embedding))
+    print("Size: ", sys.getsizeof(embedding)) """
