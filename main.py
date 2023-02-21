@@ -21,7 +21,7 @@ def main():
     generate_sentiments()
     generate_ner_entities()"""
     ind = IndexScraper()
-    ind.scrape_articles_from_page()
+    ind.scrape_yesterdays_articles()
     
 
 if __name__ == '__main__':
