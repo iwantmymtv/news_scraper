@@ -103,7 +103,8 @@ class OrigoScraper(Scraper):
 
     def scrape_category(self,soup:Tag) -> str:
         html = self.detail_soup()
-        return get_element_from_result_set(html, 'span.opt-title')
+        category = get_element_from_result_set(html, 'span.opt-title')
+        return category if not category == "" else "Sport"
 
     def scrape_image(self,soup:Tag) -> str:
         return ""
